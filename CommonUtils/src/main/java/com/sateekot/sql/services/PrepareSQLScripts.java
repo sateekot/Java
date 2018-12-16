@@ -8,5 +8,5 @@ package com.sateekot.sql.services;
 public interface PrepareSQLScripts {
 
     String prepareInsertScripts(String fileName);
-    String prepareUpdateScripts(String fileName, int updateFieldCount, int conditionFieldCount);
+    String prepareUpdateScripts(String fileName, String tableName, int updateFieldCount, int conditionFieldCount);
 }
