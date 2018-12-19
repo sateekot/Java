@@ -24,6 +24,7 @@ public class PrepareSQLScriptsImpl implements PrepareSQLScripts {
 
     public String prepareUpdateScripts(String fileName, String tableName, int updateFieldCount, int conditionFieldCount) {
         //int totalFieldCount = updateFieldCount+conditionFieldCount;
+        StringBuilder finalUpdateStmts = new StringBuilder();
         try {
             List<String> lines = Files.readAllLines(Paths.get(fileName));
 
@@ -46,36 +47,28 @@ public class PrepareSQLScriptsImpl implements PrepareSQLScripts {
             String conditionStatement = "";
             for(int i = 0; i < conditionFieldCount; i++) {
                 if(columnsWithColon.contains(dataTypes.get(updateFieldCount + i))) {
-                    conditionStatement = conditionStatement.isEmpty() ?  columns.get(i) +" = '%s'" : conditionStatement + ", "+columns.get(i) +" = '%s'";
+                    conditionStatement = conditionStatement.isEmpty() ?  columns.get(updateFieldCount + i) +" = '%s'" : conditionStatement + ", "+columns.get(updateFieldCount + i) +" = '%s'";
                 } else {
-                    conditionStatement = conditionStatement.isEmpty() ?  columns.get(i) +" = %s" : conditionStatement + ", "+columns.get(i) +" = %s";
+                    conditionStatement = conditionStatement.isEmpty() ?  columns.get(updateFieldCount + i) +" = %s" : conditionStatement + ", "+columns.get(updateFieldCount + i) +" = %s";
                 }
             }
             updateStatement.append(" WHERE ").append(conditionStatement);
 
             System.out.println(updateStatement.toString());
-
-//            lines.skip(2).forEach(row -> {
-//                String[] fields = row.split(",");
-//                if(totalFieldCount != fields.length) {
-//                    System.out.println("Creating Update script failed for row as column count is not matching row data and row details = "+row);
-//                } else {
-//                    String updateStatement = String.format("UPDATE %s SET %s = %s, ");
-//                    StringBuffer partialUpdateStatement = new StringBuffer();
-//                    for(int i =0 ; i< updateFieldCount; i++) {
-//
-//                        if(dataTypes.get(i).equalsIgnoreCase("String") || dataTypes.get(i).equalsIgnoreCase("dateteim"))
-//                        String setStmts = columns.get(i) +" = "+fields[i] +", ";
-//                        partialUpdateStatement = partialUpdateStatement.length() == 0
-//                                ? partialUpdateStatement.append(setStmts) : partialUpdateStatement.append(","+setStmts);
-//                        //partialUpdateStatement.append(columns.get(i) +" = "+fields[i] +", ");
-//                    }
-//                    String updateStmt = UPDATE+" "+tableName+" SET "+columns.get(0)+" = "+fields[0]+" ,"
-//                }
-//            });
+            streamSupplier.get().skip(2).forEach( row -> {
+                String[] rowValues = row.split(",");
+                String updateStmt = String.format(updateStatement.toString(),rowValues[0],rowValues[1]
+                        ,rowValues[2],rowValues[3],rowValues[4],rowValues[5]);
+                if(finalUpdateStmts.length() == 0) {
+                    finalUpdateStmts.append(updateStmt);
+                } else {
+                    finalUpdateStmts.append("\n");
+                    finalUpdateStmts.append(updateStmt);
+                }
+            });
         } catch(Exception ex) {
             ex.printStackTrace();
         }
-        return null;
+        return finalUpdateStmts.toString();
     }
 }
